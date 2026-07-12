@@ -1,0 +1,118 @@
+import { LineEdit } from "std-widgets.slint";
+import { T } from "theme.slint";
+
+export component Btn {
+    in property <string> label;
+    in property <bool> danger: false;
+    callback clicked();
+    height: 30px;
+    min-width: 60px;
+
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+
+    Rectangle {
+        border-radius: 5px;
+        background: ta.pressed ? (danger ? T.err.darker(15%) : T.acc.darker(15%))
+            : ta.has-hover ? (danger ? T.err.darker(5%) : T.acc.darker(5%))
+            : (danger ? T.err : T.acc);
+        animate background { duration: 50ms; }
+        Text {
+            text: root.label;
+            color: T.acc-fg;
+            font-size: 12px;
+            font-weight: 600;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+}
+
+export component AuthCard {
+    in property <string> headline;
+    in property <string> subhead;
+    in property <string> btn-label;
+    in property <string> error-text;
+    in property <bool> two-field: false;
+    callback submit(string, string);
+    width: 320px;
+
+    Rectangle {
+        border-radius: 10px;
+        background: T.panel;
+        border-width: 1px;
+        border-color: T.border;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: #00000022;
+        drop-shadow-offset-y: 4px;
+        VerticalLayout {
+            padding: 28px;
+            spacing: 14px;
+            Rectangle {
+                height: 44px;
+                Rectangle {
+                    x: (parent.width - 44px) / 2;
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 10px;
+                    background: T.acc-bg;
+                    Text {
+                        text: "T";
+                        font-size: 20px;
+                        font-weight: 800;
+                        color: T.acc;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            VerticalLayout {
+                spacing: 3px;
+                Text {
+                    text: headline;
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: T.fg;
+                    horizontal-alignment: center;
+                }
+
+                Text {
+                    text: subhead;
+                    font-size: 12px;
+                    color: T.fg-dim;
+                    horizontal-alignment: center;
+                }
+            }
+
+            p1 := LineEdit {
+                input-type: InputType.password;
+                placeholder-text: "Master password";
+                height: 34px;
+                accepted => { root.submit(p1.text, p2.text); }
+            }
+
+            p2 := LineEdit {
+                input-type: InputType.password;
+                placeholder-text: "Confirm password";
+                height: two-field ? 34px : 0px;
+                visible: two-field;
+                accepted => { root.submit(p1.text, p2.text); }
+            }
+
+            Btn {
+                label: btn-label;
+                clicked => { root.submit(p1.text, p2.text); }
+            }
+
+            if error-text != "": Text {
+                text: error-text;
+                color: T.err;
+                horizontal-alignment: center;
+                font-size: 11px;
+                wrap: word-wrap;
+            }
+        }
+    }
+}

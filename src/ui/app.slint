@@ -1,0 +1,72 @@
+import { LineEdit } from "std-widgets.slint";
+import { T } from "theme.slint";
+import { AuthCard } from "components.slint";
+
+export enum Page { Setup, Unlock, Vault }
+
+export component AppWindow inherits Window {
+    title: "Taalcha";
+    width: 480px;
+    height: 360px;
+    background: T.bg;
+
+    in-out property <Page> current-page: Page.Unlock;
+    in-out property <string> status-message;
+
+    callback setup-vault(string);
+    callback unlock-vault(string);
+
+    // ── SETUP ─────────────────────────────────────────────────────────────────
+    if current-page == Page.Setup: Rectangle {
+        background: T.bg;
+        width: 100%;
+        height: 100%;
+        AuthCard {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            headline: "Create Vault";
+            subhead: "Set a master password to get started";
+            btn-label: "Create";
+            two-field: true;
+            error-text: root.status-message;
+            submit(p, c) => {
+                if p == c && p != "" {
+                    root.setup-vault(p);
+                } else {
+                    root.status-message = "Passwords don't match";
+                }
+            }
+        }
+    }
+
+    // ── UNLOCK ────────────────────────────────────────────────────────────────
+    if current-page == Page.Unlock: Rectangle {
+        background: T.bg;
+        width: 100%;
+        height: 100%;
+        AuthCard {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            headline: "Taalcha";
+            subhead: "Enter your master password";
+            btn-label: "Unlock";
+            two-field: false;
+            error-text: root.status-message;
+            submit(p, _) => { root.unlock-vault(p); }
+        }
+    }
+
+    // ── VAULT (placeholder) ───────────────────────────────────────────────────
+    if current-page == Page.Vault: Rectangle {
+        background: T.bg;
+        width: 100%;
+        height: 100%;
+        Text {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            text: "Vault unlocked.";
+            color: T.fg;
+            font-size: 16px;
+        }
+    }
+}
