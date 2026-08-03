@@ -134,6 +134,12 @@ The primary objectives of this project are to:
 
 This project was developed as part of the B.Sc. Computer Science curriculum at Kathmandu University.
 
+
+## team code:
+
+https://github.com/Ronak-32/Talcha-ronak
+https://github.com/wallclocklizard/talchaa_ayushman
+https://github.com/ishmitgodar/Taalcha
 ---
 
 ## License
