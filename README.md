@@ -1,28 +1,115 @@
-# Taalcha: Secure Desktop Password Manager
+# Taalcha
 
-A modern, Material 3 Expressive password manager built with C++ and Slint UI.
+Taalcha is a password manager developed as a semester project for Kathmandu University. It is built using C++, Slint, SQLite, and OpenSSL with the goal of exploring secure credential storage and native cross-platform desktop application development.
 
-## Build
+The project focuses on implementing the core components of a password manager, including encrypted storage, authentication, and a modern desktop interface.
 
-### Linux
+---
+
+## Features
+
+* Local encrypted password storage
+* Master password authentication
+* Native desktop interface built with Slint
+* SQLite database backend
+* AES encryption using OpenSSL
+* Cross-platform design
+
+---
+
+## Technologies Used
+
+* C++17
+* Slint
+* SQLite3
+* OpenSSL
+* CMake
+* Ninja
+
+---
+
+## Building
+
+### Prerequisites
+
+Before building, make sure you have the following installed:
+
+* CMake 3.21 or later
+* A C++20 compatible compiler
+* Ninja
+* OpenSSL
+* SQLite3
+* libcurl
+
+### Slint SDK
+
+Taalcha expects the Slint C++ SDK to be available in one of the following locations:
+
+| Platform | Location                    |
+| -------- | --------------------------- |
+| Linux    | `vendor/slint-linux/`       |
+| macOS    | `vendor/slint-macos/`       |
+| Windows  | `C:/Libs/Slint-cpp 1.17.1/` |
+
+### Clone the repository
 
 ```bash
-cmake -B build
+git clone https://github.com/aayankc0210/taalcha.git
+cd taalcha
+```
+
+### Configure
+
+```bash
+cmake -S . -B build -G Ninja
+```
+
+### Build
+
+```bash
 cmake --build build
+```
+
+### Run
+
+```bash
 ./build/taalcha
 ```
 
-### Windows (MinGW)
+---
 
-Install MinGW-w64 and Ninja, then:
+## Project Structure
 
+```text
+Taalcha/
+├── assets/
+├── include/
+├── src/
+├── ui/
+├── vendor/
+├── CMakeLists.txt
+└── README.md
 ```
-cmake -B build-win \
--G Ninja \
--DCMAKE_SYSTEM_NAME=Windows \
--DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
--DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
--DCMAKE_BUILD_TYPE=Release
 
-cmake --build build-win
-```
+---
+
+## Project Objectives
+
+The primary objectives of this project are to:
+
+* Learn modern C++ application development
+* Explore cryptographic techniques for securing user credentials
+* Design a responsive native desktop interface
+* Build a maintainable cross-platform application using CMake
+
+---
+
+## Acknowledgements
+
+This project was developed as part of the B.Sc. Computer Science curriculum at Kathmandu University.
+
+---
+
+## License
+
+This project is licensed under the MIT License.
