@@ -1,0 +1,13 @@
+
+{
+  "name": "taalcha",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "openssl",
+    "sqlite3",
+    "curl"
+  ],
+  "builtin-baseline": "39344dff01c5a5a0134caf2624cdd492f05d30ea"
+}
+
+

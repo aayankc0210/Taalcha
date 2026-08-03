@@ -1,0 +1,480 @@
+import { LineEdit, ScrollView, TextEdit } from "std-widgets.slint";
+import { T } from "theme.slint";
+import { EntryData, Btn, Badge, Chip, AuthCard, GenPanel } from "components.slint";
+
+export { EntryData }
+
+export enum Page { Setup, Unlock, Vault }
+
+export component AppWindow inherits Window {
+    title: "Taalcha";
+    width: 1080px;
+    height: 660px;
+    background: T.bg;
+
+    in-out property <Page> current-page: Page.Unlock;
+    in-out property <[EntryData]> entries;
+    in-out property <string> status-message;
+    in-out property <int> selected-id: -1;
+    in-out property <string> search-text;
+
+    in-out property <string> gen-password;
+    in-out property <int> gen-length: 16;
+    in-out property <bool> gen-upper: true;
+    in-out property <bool> gen-digits: true;
+    in-out property <bool> gen-symbols: true;
+    in-out property <int> gen-score: 0;
+
+    in-out property <string> sel-type;
+    in-out property <string> sel-title;
+    in-out property <string> sel-username;
+    in-out property <string> sel-password;
+    in-out property <string> sel-note;
+    in-out property <string> sel-url;
+    in-out property <image> sel-favicon;
+
+    callback search-changed(string);
+    callback setup-vault(string);
+    callback unlock-vault(string);
+    callback lock-vault();
+    callback add-login(string, string, string, string);
+    callback add-note(string, string);
+    callback delete-entry(int);
+    callback save-edit(int, string, string, string, string);
+    callback generate-password();
+    callback entry-selected(int);
+
+    // ── SETUP ─────────────────────────────────────────────────────────────────
+    if current-page == Page.Setup: Rectangle {
+        background: T.bg;
+        width: 100%;
+        height: 100%;
+        AuthCard {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            headline: "Create Vault";
+            subhead: "Set a master password to get started";
+            btn-label: "Create";
+            two-field: true;
+            error-text: root.status-message;
+            submit(p, c) => { if p == c && p != "" { root.setup-vault(p); } else { root.status-message = "Passwords don't match"; } }
+        }
+    }
+
+    // ── UNLOCK ────────────────────────────────────────────────────────────────
+    if current-page == Page.Unlock: Rectangle {
+        background: T.bg;
+        width: 100%;
+        height: 100%;
+        AuthCard {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            headline: "Taalcha";
+            subhead: "Enter your master password";
+            btn-label: "Unlock";
+            two-field: false;
+            error-text: root.status-message;
+            submit(p, _) => { root.unlock-vault(p); }
+        }
+    }
+
+    // ── VAULT ─────────────────────────────────────────────────────────────────
+    if current-page == Page.Vault: Rectangle {
+        background: T.bg;
+        width: 100%;
+        height: 100%;
+
+        VerticalLayout {
+            spacing: 0px;
+
+            // top bar
+            Rectangle {
+                height: 42px;
+                background: T.panel;
+                Rectangle {
+                    y: parent.height - 1px;
+                    height: 1px;
+                    background: T.border;
+                }
+
+                HorizontalLayout {
+                    padding-left: 14px;
+                    padding-right: 14px;
+                    alignment: space-between;
+                    HorizontalLayout {
+                        spacing: 7px;
+                        alignment: center;
+                        Rectangle {
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 5px;
+                            background: T.acc-bg;
+                            Text {
+                                text: "T";
+                                font-size: 12px;
+                                font-weight: 800;
+                                color: T.acc;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        Text {
+                            text: "Taalcha";
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: T.fg;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    Btn {
+                        label: "Lock";
+                        clicked => { root.lock-vault(); }
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                vertical-stretch: 1;
+                spacing: 0px;
+
+                // ── LEFT: new entry + generator ──────────────────────────────
+                Rectangle {
+                    horizontal-stretch: 1;
+                    background: T.panel;
+                    Rectangle {
+                        x: parent.width - 1px;
+                        width: 1px;
+                        background: T.border;
+                    }
+
+                    ScrollView {
+                        VerticalLayout {
+                            padding: 8px;
+                            spacing: 5px;
+                            alignment: start;
+
+                            Text {
+                                text: "NEW ENTRY";
+                                font-size: 10px;
+                                font-weight: 700;
+                                color: T.fg-dim;
+                                letter-spacing: 1px;
+                            }
+
+                            toggle := HorizontalLayout {
+                                spacing: 4px;
+                                height: 26px;
+                                property <int> mode: 0;
+                                Rectangle {
+                                    horizontal-stretch: 1;
+                                    height: 26px;
+                                    border-radius: 5px;
+                                    background: toggle.mode == 0 ? T.acc-bg : transparent;
+                                    border-width: 1px;
+                                    border-color: toggle.mode == 0 ? T.acc : T.border;
+                                    animate background { duration: 80ms; }
+                                    Text {
+                                        text: "Login";
+                                        color: toggle.mode == 0 ? T.acc : T.fg-dim;
+                                        font-weight: toggle.mode == 0 ? 600 : 400;
+                                        font-size: 12px;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                    TouchArea { clicked => { toggle.mode = 0; } }
+                                }
+
+                                Rectangle {
+                                    horizontal-stretch: 1;
+                                    height: 26px;
+                                    border-radius: 5px;
+                                    background: toggle.mode == 1 ? T.acc-bg : transparent;
+                                    border-width: 1px;
+                                    border-color: toggle.mode == 1 ? T.acc : T.border;
+                                    animate background { duration: 80ms; }
+                                    Text {
+                                        text: "Note";
+                                        color: toggle.mode == 1 ? T.acc : T.fg-dim;
+                                        font-weight: toggle.mode == 1 ? 600 : 400;
+                                        font-size: 12px;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                    TouchArea { clicked => { toggle.mode = 1; } }
+                                }
+                            }
+
+                            new-title := LineEdit {
+                                placeholder-text: "Title";
+                                height: 30px;
+                            }
+
+                            if toggle.mode == 0: VerticalLayout {
+                                spacing: 5px;
+                                new-user := LineEdit {
+                                    placeholder-text: "Username / Email";
+                                    height: 30px;
+                                }
+
+                                HorizontalLayout {
+                                    spacing: 4px;
+                                    new-pass := LineEdit {
+                                        placeholder-text: "Password";
+                                        input-type: InputType.password;
+                                        height: 30px;
+                                        horizontal-stretch: 1;
+                                        text <=> root.gen-password;
+                                    }
+
+                                    TouchArea {
+                                        width: 30px;
+                                        height: 30px;
+                                        clicked => { new-pass.input-type = new-pass.input-type == InputType.password ? InputType.text : InputType.password; }
+                                        Rectangle {
+                                            border-radius: 5px;
+                                            background: parent.has-hover ? T.raised : transparent;
+                                            Text {
+                                                text: new-pass.input-type == InputType.password ? "👁" : "🙈";
+                                                font-size: 16px;
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                new-url := LineEdit {
+                                    placeholder-text: "URL (optional)";
+                                    height: 30px;
+                                }
+
+                                Btn {
+                                    label: "Save Entry";
+                                    clicked => {
+                                        root.add-login(new-title.text, new-user.text, new-pass.text, new-url.text);
+                                        new-title.text = "";
+                                        new-user.text = "";
+                                        new-pass.text = "";
+                                        new-url.text = "";
+                                        root.gen-password = "";
+                                    }
+                                }
+                            }
+
+                            if toggle.mode == 1: VerticalLayout {
+                                spacing: 5px;
+                                new-note := TextEdit { height: 80px; }
+
+                                Btn {
+                                    label: "Save Entry";
+                                    clicked => { root.add-note(new-title.text, new-note.text); new-title.text = ""; new-note.text = ""; }
+                                }
+                            }
+
+                            if root.status-message != "": Rectangle {
+                                height: 24px;
+                                border-radius: 5px;
+                                background: T.acc-bg;
+                                Text {
+                                    text: root.status-message;
+                                    color: T.acc;
+                                    font-size: 11px;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            GenPanel {
+                                gpw <=> root.gen-password;
+                                glen <=> root.gen-length;
+                                gupper <=> root.gen-upper;
+                                gdigits <=> root.gen-digits;
+                                gsymbols <=> root.gen-symbols;
+                                gscore: root.gen-score;
+                                do-generate => { root.generate-password(); }
+                            }
+                        }
+                    }
+                }
+
+                // ── MIDDLE: search + list ─────────────────────────────────────
+                Rectangle {
+                    horizontal-stretch: 1;
+                    background: T.bg;
+                    Rectangle {
+                        x: parent.width - 1px;
+                        width: 1px;
+                        background: T.border;
+                    }
+
+                    VerticalLayout {
+                        padding-top: 6px;
+                        padding-left: 6px;
+                        padding-right: 6px;
+                        spacing: 4px;
+
+                        LineEdit {
+                            placeholder-text: "Search...";
+                            height: 30px;
+                            edited(t) => { root.search-changed(t); }
+                        }
+
+                        Text {
+                            text: root.entries.length == 1 ? "1 entry" : (root.entries.length + " entries");
+                            font-size: 10px;
+                            color: T.fg-dim;
+                            height: 14px;
+                        }
+
+                        ScrollView {
+                            VerticalLayout {
+                                spacing: 1px;
+
+                                for entry in root.entries: Chip {
+                                    e: entry;
+                                    sel: root.selected-id == entry.id;
+                                    clicked => {
+                                        root.selected-id = entry.id;
+                                        root.entry-selected(entry.id);
+                                    }
+                                }
+
+                                Rectangle { height: 48px; }
+                            }
+                        }
+                    }
+                }
+
+                // ── RIGHT: detail ─────────────────────────────────────────────
+                Rectangle {
+                    horizontal-stretch: 1;
+                    background: T.panel;
+                    Rectangle {
+                        x: 0;
+                        width: 1px;
+                        background: T.border;
+                    }
+
+                    if root.selected-id == -1: VerticalLayout {
+                        padding: 10px;
+                        spacing: 6px;
+                        alignment: start;
+                        Badge {
+                            letter: "T";
+                            lit: false;
+                            img: @image-url("");
+                            sz: 50px;
+                        }
+
+                        Text { text: "No entry selected"; font-size: 13px; color: T.fg-dim; }
+                        Text { text: "Pick one from the list"; font-size: 11px; color: T.border; }
+                    }
+
+                    if root.selected-id != -1: ScrollView {
+                        VerticalLayout {
+                            padding: 8px;
+                            spacing: 5px;
+                            alignment: start;
+
+                            HorizontalLayout {
+                                alignment: space-between;
+                                HorizontalLayout {
+                                    spacing: 8px;
+                                    alignment: center;
+                                    Badge {
+                                        letter: root.sel-type == "login" ? "L" : "N";
+                                        lit: true;
+                                        img: root.sel-favicon;
+                                        sz: 32px;
+                                    }
+
+                                    VerticalLayout {
+                                        spacing: 1px;
+                                        Text { text: root.sel-title; font-size: 14px; font-weight: 700; color: T.fg; }
+                                        Text { text: root.sel-type == "login" ? "Login" : "Secure Note"; font-size: 11px; color: T.acc; }
+                                    }
+                                }
+
+                                Btn {
+                                    label: "Delete";
+                                    danger: true;
+                                    clicked => { root.delete-entry(root.selected-id); root.selected-id = -1; }
+                                }
+                            }
+
+                            Rectangle { height: 1px; background: T.border; }
+
+                            if root.sel-type == "login": VerticalLayout {
+                                spacing: 5px;
+
+                                Text { text: "USERNAME"; font-size: 10px; font-weight: 700; color: T.fg-dim; }
+                                edit-user := LineEdit { text: root.sel-username; height: 30px; }
+
+                                Text { text: "PASSWORD"; font-size: 10px; font-weight: 700; color: T.fg-dim; }
+                                HorizontalLayout {
+                                    spacing: 4px;
+                                    edit-pass := LineEdit {
+                                        text: root.sel-password;
+                                        input-type: InputType.password;
+                                        height: 30px;
+                                        horizontal-stretch: 1;
+                                    }
+
+                                    TouchArea {
+                                        width: 30px;
+                                        height: 30px;
+                                        clicked => { edit-pass.input-type = edit-pass.input-type == InputType.password ? InputType.text : InputType.password; }
+                                        Rectangle {
+                                            border-radius: 5px;
+                                            background: parent.has-hover ? T.raised : transparent;
+                                            Text {
+                                                text: edit-pass.input-type == InputType.password ? "👁" : "🙈";
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Text { text: "URL"; font-size: 10px; font-weight: 700; color: T.fg-dim; }
+                                edit-url := LineEdit { text: root.sel-url; height: 30px; }
+
+                                Btn {
+                                    label: "Save Changes";
+                                    clicked => { root.save-edit(root.selected-id, edit-user.text, edit-pass.text, "", edit-url.text); }
+                                }
+
+                                GenPanel {
+                                    gpw <=> root.gen-password;
+                                    glen <=> root.gen-length;
+                                    gupper <=> root.gen-upper;
+                                    gdigits <=> root.gen-digits;
+                                    gsymbols <=> root.gen-symbols;
+                                    gscore: root.gen-score;
+                                    do-generate => { root.generate-password(); }
+                                }
+
+                                Btn {
+                                    label: "Use Generated";
+                                    clicked => { edit-pass.text = root.gen-password; }
+                                }
+                            }
+
+                            if root.sel-type == "note": VerticalLayout {
+                                spacing: 5px;
+                                Text { text: "NOTE"; font-size: 10px; font-weight: 700; color: T.fg-dim; }
+                                edit-note := TextEdit { text: root.sel-note; height: 160px; }
+                                Btn {
+                                    label: "Save Changes";
+                                    clicked => { root.save-edit(root.selected-id, "", "", edit-note.text, ""); }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,439 @@
+import { LineEdit, TextEdit } from "std-widgets.slint";
+import { T } from "theme.slint";
+
+export struct EntryData {
+    id: int,
+    entry-type: string,
+    title: string,
+    username: string,
+    password: string,
+    note: string,
+    url: string,
+    favicon: image,
+}
+
+export component Btn {
+    in property <string> label;
+    in property <bool> danger: false;
+    callback clicked();
+    height: 30px;
+    min-width: 60px;
+
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+
+    Rectangle {
+        border-radius: 5px;
+        background: ta.pressed ? (danger ? T.err.darker(15%) : T.acc.darker(15%))
+            : ta.has-hover ? (danger ? T.err.darker(5%) : T.acc.darker(5%))
+            : (danger ? T.err : T.acc);
+        animate background { duration: 50ms; }
+        Text {
+            text: root.label;
+            color: T.acc-fg;
+            font-size: 12px;
+            font-weight: 600;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+}
+
+export component Badge {
+    in property <string> letter;
+    in property <bool> lit;
+    in property <image> img;
+    in property <length> sz: 30px;
+    width: sz;
+    height: sz;
+
+    Rectangle {
+        border-radius: 6px;
+        background: lit ? T.acc : T.acc-bg;
+        clip: true;
+        if img.width == 0: Text {
+            text: letter;
+            font-size: sz * 0.42;
+            font-weight: 700;
+            color: lit ? T.acc-fg : T.acc;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        if img.width > 0: Image {
+            source: img;
+            width: sz * 0.65;
+            height: sz * 0.65;
+            image-fit: contain;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+}
+
+export component Chip {
+    in property <EntryData> e;
+    in property <bool> sel;
+    callback clicked();
+    height: 42px;
+
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+
+    Rectangle {
+        border-radius: 6px;
+        background: sel ? T.acc-bg : (ta.has-hover ? T.raised : transparent);
+        animate background { duration: 80ms; }
+        HorizontalLayout {
+            padding-left: 6px;
+            padding-right: 6px;
+            spacing: 6px;
+            alignment: start;
+            Badge {
+                letter: e.entry-type == "login" ? "L" : "N";
+                lit: sel;
+                img: e.favicon;
+                sz: 26px;
+            }
+
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 0px;
+                Text {
+                    text: e.title;
+                    font-size: 13px;
+                    color: sel ? T.acc : T.fg;
+                    font-weight: sel ? 600 : 400;
+                    overflow: elide;
+                }
+
+                Text {
+                    text: e.entry-type == "login" ? e.username : e.note;
+                    font-size: 11px;
+                    color: T.fg-dim;
+                    overflow: elide;
+                }
+            }
+        }
+    }
+}
+
+export component AuthCard {
+    in property <string> headline;
+    in property <string> subhead;
+    in property <string> btn-label;
+    in property <string> error-text;
+    in property <bool> two-field: false;
+    callback submit(string, string);
+    width: 320px;
+
+    Rectangle {
+        border-radius: 10px;
+        background: T.panel;
+        border-width: 1px;
+        border-color: T.border;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: #00000022;
+        drop-shadow-offset-y: 4px;
+        VerticalLayout {
+            padding: 28px;
+            spacing: 14px;
+            Rectangle {
+                height: 44px;
+                Rectangle {
+                    x: (parent.width - 44px) / 2;
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 10px;
+                    background: T.acc-bg;
+                    Text {
+                        text: "T";
+                        font-size: 20px;
+                        font-weight: 800;
+                        color: T.acc;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            VerticalLayout {
+                spacing: 3px;
+                Text {
+                    text: headline;
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: T.fg;
+                    horizontal-alignment: center;
+                }
+
+                Text {
+                    text: subhead;
+                    font-size: 12px;
+                    color: T.fg-dim;
+                    horizontal-alignment: center;
+                }
+            }
+
+            p1 := LineEdit {
+                input-type: InputType.password;
+                placeholder-text: "Master password";
+                height: 34px;
+                accepted => { root.submit(p1.text, p2.text); }
+            }
+
+            p2 := LineEdit {
+                input-type: InputType.password;
+                placeholder-text: "Confirm password";
+                height: two-field ? 34px : 0px;
+                visible: two-field;
+                accepted => { root.submit(p1.text, p2.text); }
+            }
+
+            Btn {
+                label: btn-label;
+                clicked => { root.submit(p1.text, p2.text); }
+            }
+
+            if error-text != "": Text {
+                text: error-text;
+                color: T.err;
+                horizontal-alignment: center;
+                font-size: 11px;
+                wrap: word-wrap;
+            }
+        }
+    }
+}
+
+export component StrengthBar {
+    in property <int> score;
+    height: 4px;
+    HorizontalLayout {
+        spacing: 3px;
+        for i in [0, 1, 2, 3]: Rectangle {
+            horizontal-stretch: 1;
+            border-radius: 2px;
+            background: i < score
+                ? (score <= 1 ? T.err : score == 2 ? #facc15 : score == 3 ? #60a5fa : T.ok)
+                : T.border;
+            animate background { duration: 200ms; }
+        }
+    }
+}
+
+export component GenPanel {
+    in-out property <string> gpw;
+    in-out property <int> glen;
+    in-out property <bool> gupper;
+    in-out property <bool> gdigits;
+    in-out property <bool> gsymbols;
+    in property <int> gscore;
+    callback do-generate();
+
+    VerticalLayout {
+        spacing: 5px;
+
+        Rectangle {
+            height: 1px;
+            background: T.border;
+        }
+
+        Text {
+            text: "GENERATOR";
+            font-size: 10px;
+            font-weight: 700;
+            color: T.fg-dim;
+            letter-spacing: 1px;
+        }
+
+        Rectangle {
+            height: 30px;
+            border-radius: 5px;
+            background: T.bg;
+            border-width: 1px;
+            border-color: T.border;
+            HorizontalLayout {
+                padding-left: 8px;
+                padding-right: 4px;
+                spacing: 4px;
+                Text {
+                    text: root.gpw != "" ? root.gpw : "—";
+                    font-size: 11px;
+                    color: root.gpw != "" ? T.fg : T.fg-dim;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                    overflow: elide;
+                }
+
+                TouchArea {
+                    width: 24px;
+                    height: 24px;
+                    clicked => { root.do-generate(); }
+                    Rectangle {
+                        border-radius: 4px;
+                        background: parent.has-hover ? T.raised : transparent;
+                        Text {
+                            text: "↻";
+                            font-size: 13px;
+                            color: T.acc;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        StrengthBar {
+            score: root.gscore;
+        }
+
+        HorizontalLayout {
+            alignment: space-between;
+            Text {
+                text: "Length";
+                font-size: 11px;
+                color: T.fg-dim;
+                vertical-alignment: center;
+            }
+
+            HorizontalLayout {
+                spacing: 4px;
+                TouchArea {
+                    width: 20px;
+                    height: 20px;
+                    clicked => { if root.glen > 8 { root.glen -= 1; root.do-generate(); } }
+                    Rectangle {
+                        border-radius: 4px;
+                        background: parent.has-hover ? T.raised : transparent;
+                        Text {
+                            text: "−";
+                            font-size: 13px;
+                            color: T.acc;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                Text {
+                    text: root.glen;
+                    font-size: 11px;
+                    color: T.fg;
+                    vertical-alignment: center;
+                    min-width: 18px;
+                    horizontal-alignment: center;
+                }
+
+                TouchArea {
+                    width: 20px;
+                    height: 20px;
+                    clicked => { if root.glen < 64 { root.glen += 1; root.do-generate(); } }
+                    Rectangle {
+                        border-radius: 4px;
+                        background: parent.has-hover ? T.raised : transparent;
+                        Text {
+                            text: "+";
+                            font-size: 13px;
+                            color: T.acc;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: space-between;
+            Text {
+                text: "Uppercase (A–Z)";
+                font-size: 11px;
+                color: T.fg-dim;
+                vertical-alignment: center;
+            }
+
+            TouchArea {
+                width: 32px;
+                height: 18px;
+                clicked => { root.gupper = !root.gupper; root.do-generate(); }
+                Rectangle {
+                    border-radius: 9px;
+                    background: root.gupper ? T.acc : T.border;
+                    animate background { duration: 100ms; }
+                    Rectangle {
+                        x: root.gupper ? parent.width - 16px : 2px;
+                        y: 2px;
+                        width: 14px;
+                        height: 14px;
+                        border-radius: 7px;
+                        background: T.acc-fg;
+                        animate x { duration: 100ms; easing: ease-out; }
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: space-between;
+            Text {
+                text: "Digits (0–9)";
+                font-size: 11px;
+                color: T.fg-dim;
+                vertical-alignment: center;
+            }
+
+            TouchArea {
+                width: 32px;
+                height: 18px;
+                clicked => { root.gdigits = !root.gdigits; root.do-generate(); }
+                Rectangle {
+                    border-radius: 9px;
+                    background: root.gdigits ? T.acc : T.border;
+                    animate background { duration: 100ms; }
+                    Rectangle {
+                        x: root.gdigits ? parent.width - 16px : 2px;
+                        y: 2px;
+                        width: 14px;
+                        height: 14px;
+                        border-radius: 7px;
+                        background: T.acc-fg;
+                        animate x { duration: 100ms; easing: ease-out; }
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: space-between;
+            Text {
+                text: "Symbols (!@#…)";
+                font-size: 11px;
+                color: T.fg-dim;
+                vertical-alignment: center;
+            }
+
+            TouchArea {
+                width: 32px;
+                height: 18px;
+                clicked => { root.gsymbols = !root.gsymbols; root.do-generate(); }
+                Rectangle {
+                    border-radius: 9px;
+                    background: root.gsymbols ? T.acc : T.border;
+                    animate background { duration: 100ms; }
+                    Rectangle {
+                        x: root.gsymbols ? parent.width - 16px : 2px;
+                        y: 2px;
+                        width: 14px;
+                        height: 14px;
+                        border-radius: 7px;
+                        background: T.acc-fg;
+                        animate x { duration: 100ms; easing: ease-out; }
+                    }
+                }
+            }
+        }
+    }
+}
