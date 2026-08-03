@@ -1,15 +1,16 @@
 #include "VaultManager.h"
 #include <ctime>
 #include <iostream>
+using namespace std;
 
-bool VaultManager::add_login(const std::string &title,
-                              const std::string &username,
-                              const std::string &password,
-                              const std::vector<std::string> &urls) {
+bool VaultManager::add_login(const string &title,
+                              const string &username,
+                              const string &password,
+                              const vector<string> &urls) {
   if (!unlocked) return false;
 
-  std::string enc_pass = encrypt(password);
-  int now = (int)std::time(nullptr);
+  string enc_pass = encrypt(password);
+  int now = (int)time(nullptr);
 
   sqlite3_stmt *stmt;
   const char *sql =
@@ -39,11 +40,11 @@ bool VaultManager::add_login(const std::string &title,
   return true;
 }
 
-bool VaultManager::add_note(const std::string &title, const std::string &note) {
+bool VaultManager::add_note(const string &title, const string &note) {
   if (!unlocked) return false;
 
-  std::string enc_note = encrypt(note);
-  int now = (int)std::time(nullptr);
+  string enc_note = encrypt(note);
+  int now = (int)time(nullptr);
 
   sqlite3_stmt *stmt;
   const char *sql =
@@ -61,13 +62,13 @@ bool VaultManager::add_note(const std::string &title, const std::string &note) {
   return ok;
 }
 
-bool VaultManager::update_login(int id, const std::string &username,
-                                 const std::string &password,
-                                 const std::string &url) {
+bool VaultManager::update_login(int id, const string &username,
+                                 const string &password,
+                                 const string &url) {
   if (!unlocked) return false;
 
-  std::string enc_pass = encrypt(password);
-  int now = (int)std::time(nullptr);
+  string enc_pass = encrypt(password);
+  int now = (int)time(nullptr);
 
   sqlite3_stmt *stmt;
   const char *sql =
@@ -100,11 +101,11 @@ bool VaultManager::update_login(int id, const std::string &username,
   return ok;
 }
 
-bool VaultManager::update_note(int id, const std::string &note) {
+bool VaultManager::update_note(int id, const string &note) {
   if (!unlocked) return false;
 
-  std::string enc_note = encrypt(note);
-  int now = (int)std::time(nullptr);
+  string enc_note = encrypt(note);
+  int now = (int)time(nullptr);
 
   sqlite3_stmt *stmt;
   const char *sql = "UPDATE entries SET note_encrypted=?, updated_at=? WHERE id=?;";
@@ -117,8 +118,8 @@ bool VaultManager::update_note(int id, const std::string &note) {
   return ok;
 }
 
-std::vector<Entry> VaultManager::get_entries() {
-  std::vector<Entry> out;
+vector<Entry> VaultManager::get_entries() {
+  vector<Entry> out;
   if (!unlocked) return out;
 
   // fetch first URL per entry in one pass
@@ -142,8 +143,8 @@ std::vector<Entry> VaultManager::get_entries() {
     const char *url  = (const char *)sqlite3_column_text(stmt, 6);
 
     if (user) e.username = user;
-    if (pass) e.password = decrypt(std::string(pass));
-    if (note) e.note     = decrypt(std::string(note));
+    if (pass) e.password = decrypt(string(pass));
+    if (note) e.note     = decrypt(string(note));
     if (url)  e.url      = url;
 
     out.push_back(e);

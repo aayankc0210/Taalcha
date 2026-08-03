@@ -1,8 +1,9 @@
 #include "VaultManager.h"
 #include <iostream>
+using namespace std;
 
 bool VaultManager::create_schema() {
-    const std::string sql = R"(
+    const string sql = R"(
     CREATE TABLE IF NOT EXISTS vault_meta (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
@@ -31,8 +32,8 @@ bool VaultManager::create_schema() {
 }
 
 bool VaultManager::init() {
-    std::filesystem::create_directories(vault_path);
-    database = std::make_unique<Database>(db_path.string());
+    filesystem::create_directories(vault_path);
+    database = make_unique<Database>(db_path.string());
     if (!database->is_open()) return false;
     return create_schema();
 }

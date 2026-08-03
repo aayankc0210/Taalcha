@@ -1,9 +1,10 @@
 #include "db.h"
 #include <iostream>
+using namespace std;
 
-Database::Database(const std::string& path) : db(nullptr) {
+Database::Database(const string& path) : db(nullptr) {
     if (sqlite3_open(path.c_str(), &db) != SQLITE_OK) {
-        std::cerr << "Cannot open database: " << path << "\n";
+        cerr << "Cannot open database: " << path << "\n";
         db = nullptr;
     }
 }
@@ -21,10 +22,10 @@ sqlite3* Database::get() const {
     return db;
 }
 
-bool Database::execute(const std::string& sql) {
+bool Database::execute(const string& sql) {
     char* err = nullptr;
     if (sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err) != SQLITE_OK) {
-        std::cerr << "SQL error: " << err << "\n";
+        cerr << "SQL error: " << err << "\n";
         sqlite3_free(err);
         return false;
     }

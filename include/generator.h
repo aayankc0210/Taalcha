@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+using namespace std;
 
-std::string gen_password(int length, bool upper, bool digits, bool symbols);
-int password_score(const std::string& pw);
+string gen_password(int length, bool upper, bool digits, bool symbols);
+int password_score(const string& pw);

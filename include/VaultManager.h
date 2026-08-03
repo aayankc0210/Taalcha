@@ -5,59 +5,60 @@
 #include <memory>
 #include <string>
 #include <vector>
+using namespace std;
 
 struct Entry {
     int id;
-    std::string type;
-    std::string title;
-    std::string username;
-    std::string password;
-    std::string note;
-    std::string url;
-    std::string favicon_path;
+    string type;
+    string title;
+    string username;
+    string password;
+    string note;
+    string url;
+    string favicon_path;
 };
 
 class VaultManager {
 private:
-    std::filesystem::path vault_path;
-    std::filesystem::path db_path;
+    filesystem::path vault_path;
+    filesystem::path db_path;
 
-    std::unique_ptr<Database> database;
+    unique_ptr<Database> database;
     bool unlocked = false;
-    std::vector<uint8_t> master_key;
+    vector<uint8_t> master_key;
 
     sqlite3* db();
 
     bool create_schema();
 
-    std::string encrypt(const std::string& data);
-    std::string decrypt(const std::string& data);
+    string encrypt(const string& data);
+    string decrypt(const string& data);
 
-    bool derive_key(const std::string& password, const std::string& salt_hex);
-    std::string hash_password(const std::string& password);
-    bool verify_password(const std::string& password, const std::string& stored_hash);
+    bool derive_key(const string& password, const string& salt_hex);
+    string hash_password(const string& password);
+    bool verify_password(const string& password, const string& stored_hash);
 
 public:
-    VaultManager(const std::filesystem::path& path);
+    VaultManager(const filesystem::path& path);
 
     bool init();
-    bool setup(const std::string& master_password);
-    bool unlock(const std::string& master_password);
+    bool setup(const string& master_password);
+    bool unlock(const string& master_password);
     void lock();
     bool is_initialized();
     bool is_unlocked() const;
 
-    bool add_login(const std::string& title, const std::string& username,
-                   const std::string& password,
-                   const std::vector<std::string>& urls);
-    bool add_note(const std::string& title, const std::string& note);
+    bool add_login(const string& title, const string& username,
+                   const string& password,
+                   const vector<string>& urls);
+    bool add_note(const string& title, const string& note);
 
-    bool update_login(int id, const std::string& username,
-                      const std::string& password, const std::string& url);
-    bool update_note(int id, const std::string& note);
+    bool update_login(int id, const string& username,
+                      const string& password, const string& url);
+    bool update_note(int id, const string& note);
 
-    std::vector<Entry> get_entries();
+    vector<Entry> get_entries();
     bool delete_entry(int id);
 
-    std::filesystem::path get_vault_path() const { return vault_path; }
+    filesystem::path get_vault_path() const { return vault_path; }
 };

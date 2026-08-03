@@ -4,27 +4,28 @@
 #include "generator.h"
 #include <filesystem>
 #include <slint.h>
+using namespace std;
 
-std::filesystem::path get_vault_path() {
+filesystem::path get_vault_path() {
 #if defined(_WIN32)
-    const char* base = std::getenv("APPDATA");
-    std::filesystem::path p = base ? base : ".";
+    const char* base = getenv("APPDATA");
+    filesystem::path p = base ? base : ".";
     p /= "taalcha";
 #elif defined(__APPLE__)
-    const char* home = std::getenv("HOME");
-    std::filesystem::path p = home ? home : ".";
+    const char* home = getenv("HOME");
+    filesystem::path p = home ? home : ".";
     p /= "Library/Application Support/taalcha";
 #else
-    const char* home = std::getenv("HOME");
-    std::filesystem::path p = home ? home : ".";
+    const char* home = getenv("HOME");
+    filesystem::path p = home ? home : ".";
     p /= ".local/share/taalcha";
 #endif
-    std::filesystem::create_directories(p);
+    filesystem::create_directories(p);
     return p;
 }
 
-static std::vector<Entry> all_entries;
-static std::filesystem::path favicon_cache;
+static vector<Entry> all_entries;
+static filesystem::path favicon_cache;
 
 static EntryData to_slint(const Entry& e) {
     EntryData d;
@@ -40,18 +41,18 @@ static EntryData to_slint(const Entry& e) {
     return d;
 }
 
-static void push_filtered(AppWindow& app, const std::string& query) {
-    auto vec = std::make_shared<slint::VectorModel<EntryData>>();
+static void push_filtered(AppWindow& app, const string& query) {
+    auto vec = make_shared<slint::VectorModel<EntryData>>();
     for (auto& e : all_entries) {
         if (!query.empty()) {
-            auto lower = [](std::string s) {
-                for (auto& c : s) c = (char)std::tolower((unsigned char)c);
+            auto lower = [](string s) {
+                for (auto& c : s) c = (char)tolower((unsigned char)c);
                 return s;
             };
-            std::string q = lower(query);
-            if (lower(e.title).find(q)    == std::string::npos &&
-                lower(e.username).find(q) == std::string::npos &&
-                lower(e.note).find(q)     == std::string::npos)
+            string q = lower(query);
+            if (lower(e.title).find(q)    == string::npos &&
+                lower(e.username).find(q) == string::npos &&
+                lower(e.note).find(q)     == string::npos)
                 continue;
         }
         vec->push_back(to_slint(e));
@@ -63,11 +64,11 @@ static void refresh_entries(AppWindow& app, VaultManager& vault) {
     all_entries = vault.get_entries();
     for (auto& e : all_entries) {
         if (e.type != "login" || e.url.empty() || !e.favicon_path.empty()) continue;
-        std::string domain = domain_from_url(e.url);
+        string domain = domain_from_url(e.url);
         if (!domain.empty())
             e.favicon_path = fetch_favicon(domain, favicon_cache);
     }
-    push_filtered(app, std::string(app.get_search_text()));
+    push_filtered(app, string(app.get_search_text()));
 }
 
 int main() {
@@ -86,7 +87,7 @@ int main() {
     app->set_gen_symbols(true);
 
     app->on_generate_password([&]() {
-        std::string pw = gen_password(
+        string pw = gen_password(
             app->get_gen_length(),
             app->get_gen_upper(),
             app->get_gen_digits(),
@@ -96,7 +97,7 @@ int main() {
     });
 
     app->on_setup_vault([&](slint::SharedString pw) {
-        if (vault.setup(std::string(pw))) {
+        if (vault.setup(string(pw))) {
             app->set_current_page(Page::Vault);
             app->set_status_message("");
             refresh_entries(*app, vault);
@@ -106,7 +107,7 @@ int main() {
     });
 
     app->on_unlock_vault([&](slint::SharedString pw) {
-        if (vault.unlock(std::string(pw))) {
+        if (vault.unlock(string(pw))) {
             app->set_current_page(Page::Vault);
             app->set_status_message("");
             refresh_entries(*app, vault);
@@ -123,25 +124,25 @@ int main() {
         app->set_status_message("");
         app->set_gen_password("");
         all_entries.clear();
-        app->set_entries(std::make_shared<slint::VectorModel<EntryData>>());
+        app->set_entries(make_shared<slint::VectorModel<EntryData>>());
     });
 
     app->on_search_changed([&](slint::SharedString q) {
         app->set_search_text(q);
-        push_filtered(*app, std::string(q));
+        push_filtered(*app, string(q));
     });
 
     app->on_add_login([&](slint::SharedString title, slint::SharedString user,
                           slint::SharedString pass, slint::SharedString url) {
-        if (std::string(title).empty()) { app->set_status_message("Title required"); return; }
-        vault.add_login(std::string(title), std::string(user), std::string(pass), { std::string(url) });
+        if (string(title).empty()) { app->set_status_message("Title required"); return; }
+        vault.add_login(string(title), string(user), string(pass), { string(url) });
         app->set_status_message("Saved!");
         refresh_entries(*app, vault);
     });
 
     app->on_add_note([&](slint::SharedString title, slint::SharedString note) {
-        if (std::string(title).empty()) { app->set_status_message("Title required"); return; }
-        vault.add_note(std::string(title), std::string(note));
+        if (string(title).empty()) { app->set_status_message("Title required"); return; }
+        vault.add_note(string(title), string(note));
         app->set_status_message("Saved!");
         refresh_entries(*app, vault);
     });
@@ -151,9 +152,9 @@ int main() {
         for (auto& e : all_entries) {
             if (e.id != id) continue;
             if (e.type == "login")
-                vault.update_login(id, std::string(user), std::string(pass), std::string(url));
+                vault.update_login(id, string(user), string(pass), string(url));
             else
-                vault.update_note(id, std::string(note));
+                vault.update_note(id, string(note));
             break;
         }
         refresh_entries(*app, vault);
