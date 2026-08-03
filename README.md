@@ -60,9 +60,35 @@ cd taalcha
 
 ### Configure
 
+**Linux**
+
 ```bash
 cmake -S . -B build -G Ninja
 ```
+
+**Windows (vcpkg)**
+
+```bash
+cmake -S . -B build -G Ninja ^
+    -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+```
+
+Replace `C:/vcpkg` with the location where vcpkg is installed on your system.
+### Configure
+
+**Linux**
+
+```bash
+cmake -S . -B build -G Ninja
+```
+
+**Windows (vcpkg)**
+
+```bash
+cmake -S . -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+```
+
+Replace `C:/vcpkg` with the location where vcpkg is installed on your system.
 
 ### Build
 
